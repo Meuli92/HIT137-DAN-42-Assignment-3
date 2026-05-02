@@ -18,7 +18,21 @@ class ImageAlteration:
       raise NotImplementedError
 
 # ----------------------------
-# Child 1 (brightness change)
+# Child 1 (colour shift)
+# ----------------------------
+
+class ColourShift(ImageAlteration):
+    def apply(self, image):
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
+
+        shift = np.random.randint(-25, 25, region.shape)
+        region = np.clip(region + shift, 0, 255).astype(np.uint8)
+
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
+        return image
+
+# ----------------------------
+# Child 2 (brightness change)
 # ----------------------------
 
 class BrightnessChange (ImageAlteration):
@@ -30,4 +44,36 @@ class BrightnessChange (ImageAlteration):
 
         image[self.y:self.y + self.h, self.x:self.x + self.w] = region
         return image
+
+# ----------------------------
+# Child 3 (shape)
+# ----------------------------
+
+class AddShape(ImageAlteration):
+    def apply(self, image):
+        overlay = image.copy()
+
+        center = (self.x + self.w // 2, self.y + self.h // 2)
+        radius = min(self.w, self.h) // 3
+
+        color = (random.randomint(0, 255), random.randomint(0, 255), random.randomint(0, 255))
+
+        cv2.circle(overlay, center, radius, color, -1)
+
+        roi = image[self.y: self.y + self.h, self.x: self.x + self.w]
+        overlay_roi = overlay(selfy: self.y + self.h, self.x: self.x + self.w
+
+        alpha = 0.45
+        blended = cv2.addweighted(overlay_roi, roi, alpha, alpha - 1, 0)
+
+        image[self.y: self.y + self.h, self.x: self.x + self.w] = blended
+
+        return image
+
+
+
+
+
+
+
 

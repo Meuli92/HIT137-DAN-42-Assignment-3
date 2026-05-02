@@ -7,7 +7,7 @@ import random
 # ---------------------------------------
 
 class ImageAlteration:
-  def __init__(self, x, y, w, h)
+  def __init__(self, x, y, w, h):
       self.x = x
       self.y = y
       self.w = w
@@ -56,7 +56,7 @@ class AddShape(ImageAlteration):
         center = (self.x + self.w // 2, self.y + self.h // 2)
         radius = min(self.w, self.h) // 3
 
-        color = (random.randomint(0, 255), random.randomint(0, 255), random.randomint(0, 255))
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
         cv2.circle(overlay, center, radius, color, -1)
 
@@ -100,11 +100,11 @@ class ImageProcessor:
         while len(self.differences) < self.num_differences and attempts < max_attempts:
             attempts += 1
 
-            w = random.randomint(width // 12, width // 6)
-            h = random.randomints(height // 12, height // 6)
+            w = random.randint(width // 12, width // 6)
+            h = random.randints(height // 12, height // 6)
 
-            x = random.randomint(0, width - w)
-            y = random.randomint(0, height - h)
+            x = random.randint(0, width - w)
+            y = random.randint(0, height - h)
 
             new_rect = (x, y, w, h)
 
@@ -128,7 +128,7 @@ class ImageProcessor:
 
     def is_click_inside(self, click_x, click_y, tolerance = 10):
         for (x, y, w, h, _) in self.differences:
-            if (x - tolerance <= click_x <= x + w + tolerance and y - tolerance <= click_y <= y + h + tolerance);
+            if (x - tolerance <= click_x <= x + w + tolerance and y - tolerance <= click_y <= y + h + tolerance):
               return True
         return False
 

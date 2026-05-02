@@ -101,7 +101,7 @@ class ImageProcessor:
             attempts += 1
 
             w = random.randint(width // 12, width // 6)
-            h = random.randints(height // 12, height // 6)
+            h = random.randint(height // 12, height // 6)
 
             x = random.randint(0, width - w)
             y = random.randint(0, height - h)

@@ -1,5 +1,5 @@
 import cv2
-import numpy as mp
+import numpy as np
 import random 
 
 # ----------------

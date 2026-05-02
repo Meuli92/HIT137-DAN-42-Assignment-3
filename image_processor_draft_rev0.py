@@ -39,7 +39,7 @@ class BrightnessChange (ImageAlteration):
     def apply(self, image):
         region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
 
-        value = random.randint (-40, 40)
+        value = random.randint(-40, 40)
         region = np.clip(region + value, 0, 255).astype(np.uint8)
 
         image[self.y:self.y + self.h, self.x:self.x + self.w] = region
@@ -64,7 +64,7 @@ class AddShape(ImageAlteration):
         overlay_roi = overlay[self.y: self.y + self.h, self.x: self.x + self.w]
 
         alpha = 0.45
-        blended = cv2.addWeighted(overlay_roi, roi, alpha, alpha - 1, 0)
+        blended = cv2.addWeighted(overlay_roi, alpha, roi, 1 - alpha, 0)
 
         image[self.y: self.y + self.h, self.x: self.x + self.w] = blended
 
@@ -129,7 +129,7 @@ class ImageProcessor:
     def is_click_inside(self, click_x, click_y, tolerance = 10):
         for (x, y, w, h, _) in self.differences:
             if (x - tolerance <= click_x <= x + w + tolerance and y - tolerance <= click_y <= y + h + tolerance):
-              return True
+                return True
         return False
 
     def draw_debug(self):
@@ -144,6 +144,7 @@ class ImageProcessor:
 
         for (x, y, w, h, _) in self.differences:
             if (nx < x + w and nx + nw > x and ny < y + h and ny + nh > y):
+                return True
         return False
 
 

@@ -1,0 +1,33 @@
+import cv2
+import numpy as mp
+import random 
+
+# ----------------
+# Base class (inheritance + polymorphism)
+# ---------------------------------------
+
+class ImageAlteration:
+  def __init__(self, x, y, w, h)
+      self.x = x
+      self.y = y
+      self.w = w
+      self.h = h
+
+  def apply(self, image):
+      """each child class will override this."""
+      raise NotImplementedError
+
+# ----------------------------
+# Child 1 (brightness change)
+# ----------------------------
+
+class BrightnessChange (ImageAlteration):
+    def apply(self, image):
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
+
+        value = random.randint (-40, 40)
+        region = np.clip(region + value, 0, 255).astype(np.uint8)
+
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
+        return image
+

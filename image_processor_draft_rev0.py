@@ -70,9 +70,9 @@ class AddShape(ImageAlteration):
 
         return image
 
-# ----------------------------
+# ---------------------------
 # Image Processor
-# ----------------------------
+# ---------------------------
 
 class ImageProcessor:  
     def __init__ (self, image_path, num_differences = 5, seed = None):

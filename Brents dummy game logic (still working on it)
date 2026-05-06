@@ -33,8 +33,8 @@ class GameState:
     def is_locked(self) -> bool:
         return self.mistakes >= self.max_mistakes
 
-# 2. THE DUMMY DATA (This was what was missing!)
-# This simulates the 5 differences your teammate's OpenCV code will eventually find.
+# 2. THE DUMMY DATA 
+# This simulates the 5 differences code will eventually find.
 dummy_regions = [
     {'x': 50,  'y': 50,  'radius': 25, 'found': False}, 
     {'x': 150, 'y': 200, 'radius': 15, 'found': False}, 

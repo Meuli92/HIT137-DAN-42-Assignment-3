@@ -24,24 +24,39 @@ class GameState:
         """Reset state for a new image."""
         pass
 
-####----WORKING ON SKELETON CODE (UNFINISHED)-------####
+####----WORKING ON SKELETON CODE WITH SANJAYS GUI CODE (UNFINISHED)-------####
+import math
+
 class GameState:
     def __init__(self, regions: list):
-        self.regions = regions  # List of dicts: {'x':, 'y':, 'radius':, 'found': False}
+        """
+        regions: A list of dictionaries provided by the OpenCV class.
+        Example: {'x': 100, 'y': 150, 'radius': 15, 'found': False}
+        """
+        self.regions = regions
         self.mistakes = 0
         self.max_mistakes = 3
         self.found_count = 0
-        self.click_threshold = 20 # Standard proximity buffer
+        self.total_differences = 5
+
+    def _get_distance(self, x1, y1, x2, y2):
+        """Proximity Logic: Calculates Euclidean distance."""
+        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
     def check_click(self, x: int, y: int) -> str:
-        if self.is_locked():
+        """
+        Validates the click against hidden regions.
+        This directly feeds into the partner's 'check_click' event.
+        """
+        if self.mistakes >= self.max_mistakes:
             return 'locked'
 
         for region in self.regions:
+            # Calculate how close the click was to the center of the difference
             distance = self._get_distance(x, y, region['x'], region['y'])
             
-            # Check if distance is within the 'proximity' of the region
-            if distance <= region.get('radius', self.click_threshold):
+            # Complexity Detection: Smaller radius = harder to hit
+            if distance <= region.get('radius', 20):
                 if region['found']:
                     return 'already_found'
                 
@@ -49,19 +64,14 @@ class GameState:
                 self.found_count += 1
                 return 'hit'
         
+        # No hit found in the loop
         self.mistakes += 1
         return 'miss'
 
-    def _get_distance(self, x1, y1, x2, y2):
-        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+    def get_unfound_regions(self) -> list:
+        """Requirement: Provides data for the 'Reveal' button."""
+        return [r for r in self.regions if not r['found']]
 
-    def is_complete(self) -> bool:
-        return self.found_count == 5
-
-    def is_locked(self) -> bool:
-        return self.mistakes >= self.max_mistakes
-
-    def get_game_summary(self):
-        """Useful for complexity detection requirements."""
-        # Logic to return how many hard vs easy targets were found
-        pass
+    def is_game_over(self) -> bool:
+        """Checks if the user has failed (3 mistakes) or won (5 found)."""
+        return self.mistakes >= self.max_mistakes or self.found_count == self.total_differences

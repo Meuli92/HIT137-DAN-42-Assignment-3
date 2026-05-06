@@ -1,32 +1,62 @@
 import math
 
+# 1. THE CLASS (The "Brain")
 class GameState:
-    def __init__(self, target_coords, threshold=20):
-        self.target_coords = target_coords  # List of dicts: [{'x': 10, 'y': 20, 'found': False}, ...]
-        self.threshold = threshold
+    def __init__(self, regions: list):
+        self.regions = regions
         self.mistakes = 0
+        self.max_mistakes = 3
         self.found_count = 0
+        self.click_threshold = 20 
 
-    def process_click(self, click_x, click_y):
-        if self.mistakes >= 3:
-            return "GAME_OVER"
+    def _get_distance(self, x1, y1, x2, y2):
+        return math.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-        for diff in self.target_coords:
-            if not diff['found']:
-                # Proximity Logic
-                distance = math.sqrt((click_x - diff['x'])**2 + (click_y - diff['y'])**2)
-                if distance <= self.threshold:
-                    diff['found'] = True
-                    self.found_count += 1
-                    return "HIT"
-        
+    def check_click(self, x: int, y: int) -> str:
+        if self.is_locked():
+            return 'locked'
+        for region in self.regions:
+            distance = self._get_distance(x, y, region['x'], region['y'])
+            hit_radius = region.get('radius', self.click_threshold)
+            if distance <= hit_radius:
+                if region['found']:
+                    return 'already_found'
+                region['found'] = True
+                self.found_count += 1
+                return 'hit'
         self.mistakes += 1
-        return "MISS"
+        return 'miss'
 
-# --- TESTING WITH DUMMY DATA ---
-dummy_data = [{'x': 50, 'y': 50, 'found': False}, {'x': 150, 'y': 150, 'found': False}]
-game = GameState(dummy_data)
+    def is_complete(self) -> bool:
+        return self.found_count == 5
 
-print(game.process_click(52, 49))  # Should print "HIT"
-print(game.process_click(10, 10))  # Should print "MISS"
-print(f"Mistakes: {game.mistakes}") # Should print "Mistakes: 1"
+    def is_locked(self) -> bool:
+        return self.mistakes >= self.max_mistakes
+
+# 2. THE DUMMY DATA (This was what was missing!)
+# This simulates the 5 differences your teammate's OpenCV code will eventually find.
+dummy_regions = [
+    {'x': 50,  'y': 50,  'radius': 25, 'found': False}, 
+    {'x': 150, 'y': 200, 'radius': 15, 'found': False}, 
+    {'x': 300, 'y': 100, 'radius': 8,  'found': False}, 
+    {'x': 400, 'y': 450, 'radius': 20, 'found': False}, 
+    {'x': 100, 'y': 400, 'radius': 12, 'found': False}  
+]
+
+# 3. RUNNING THE TEST
+game = GameState(dummy_regions)
+
+print("--- Testing Game Logic ---")
+print(f"found an Easy Target (51, 51): {game.check_click(51, 51)}") 
+print(f"1st missed target (10, 10): {game.check_click(10, 10)}")
+print(f"found a Hard target (301,100): {game.check_click(301,100)}")
+print(f"2nd miss(108,50) {game.check_click(108,50)}")
+print(f"Mistakes so far: {game.mistakes}")
+
+#----USING PYTHON RECIEVED THESE RESULTS----
+--- Testing Game Logic ---
+found an Easy Target (51, 51): hit
+1st missed target (10, 10): miss
+found a Hard target (301,100): hit
+2nd miss(108,50) miss
+Mistakes so far: 2

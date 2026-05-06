@@ -46,7 +46,6 @@ class GameState:
     def check_click(self, x: int, y: int) -> str:
         """
         Validates the click against hidden regions.
-        This directly feeds into the partner's 'check_click' event.
         """
         if self.mistakes >= self.max_mistakes:
             return 'locked'

@@ -1,0 +1,32 @@
+import math
+
+class GameState:
+    def __init__(self, target_coords, threshold=20):
+        self.target_coords = target_coords  # List of dicts: [{'x': 10, 'y': 20, 'found': False}, ...]
+        self.threshold = threshold
+        self.mistakes = 0
+        self.found_count = 0
+
+    def process_click(self, click_x, click_y):
+        if self.mistakes >= 3:
+            return "GAME_OVER"
+
+        for diff in self.target_coords:
+            if not diff['found']:
+                # Proximity Logic
+                distance = math.sqrt((click_x - diff['x'])**2 + (click_y - diff['y'])**2)
+                if distance <= self.threshold:
+                    diff['found'] = True
+                    self.found_count += 1
+                    return "HIT"
+        
+        self.mistakes += 1
+        return "MISS"
+
+# --- TESTING WITH DUMMY DATA ---
+dummy_data = [{'x': 50, 'y': 50, 'found': False}, {'x': 150, 'y': 150, 'found': False}]
+game = GameState(dummy_data)
+
+print(game.process_click(52, 49))  # Should print "HIT"
+print(game.process_click(10, 10))  # Should print "MISS"
+print(f"Mistakes: {game.mistakes}") # Should print "Mistakes: 1"

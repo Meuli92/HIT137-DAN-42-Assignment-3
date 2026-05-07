@@ -68,7 +68,7 @@ class GameState:
         return 'miss'
 
     def get_unfound_regions(self) -> list:
-        """Requirement: Provides data for the 'Reveal' button."""
+        """Provides data for the 'Reveal' button."""
         return [r for r in self.regions if not r['found']]
 
     def is_game_over(self) -> bool:

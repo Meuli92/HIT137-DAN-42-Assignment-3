@@ -1,4 +1,3 @@
-####----WORKING ON SKELETON CODE WITH SANJAYS GUI CODE (UNFINISHED)-------####
 import math
 
 class GameState:

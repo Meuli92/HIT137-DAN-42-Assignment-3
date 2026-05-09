@@ -1,211 +1,163 @@
 import cv2
 import numpy as np
-import random
+import random 
 
-
-# =============================================================================
-# BASE CLASS — ImageAlteration
-# =============================================================================
+# --------------------------------------
+# Base class (inheritance + polymorphism)
+# ---------------------------------------
 
 class ImageAlteration:
-    """
-    Base class for all alteration types.
-    Each alteration affects a circular region defined by centre (x, y) and radius r.
-    Child classes must implement the apply() method.
-    """
+  def __init__(self, x, y, w, h):
+      self.x = x
+      self.y = y
+      self.w = w
+      self.h = h
 
-    def __init__(self, x: int, y: int, r: int):
-        """
-        Initialise the alteration region.
+  def apply(self, image):
+      """each child class will override this."""
+      raise NotImplementedError
 
-        Args:
-            x: x coordinate of the circle centre
-            y: y coordinate of the circle centre
-            r: radius of the circle
-        """
-        self.x = x
-        self.y = y
-        self.r = r
-
-    def apply(self, image: np.ndarray) -> np.ndarray:
-        """
-        Apply this alteration to the image.
-        Every child class MUST implement this method.
-        """
-        raise NotImplementedError("Subclass must implement apply()")
-
-    def get_region(self) -> dict:
-        """
-        Return the circular region this alteration affects,
-        in the standard format used across the application.
-
-        Returns:
-            dict: {'x': int, 'y': int, 'r': int, 'found': False}
-        """
-        pass
-
-    def overlaps(self, other: 'ImageAlteration') -> bool:
-        """
-        Check if this alteration's circle overlaps with another.
-
-        Args:
-            other: another ImageAlteration instance to check against
-
-        Returns:
-            True if the circles overlap, False otherwise
-        """
-        pass
-
-    def _get_circular_mask(self, image: np.ndarray) -> np.ndarray:
-        """
-        Create a mask the same size as the image.
-        Pixels inside the circle are 255, outside are 0.
-        Use this in child classes to apply effects only within the circle.
-
-        Args:
-            image: the image to base the mask size on
-
-        Returns:
-            mask as a numpy array
-        """
-        pass
-
-
-# =============================================================================
-# CHILD CLASS 1 — ColourShift
-# =============================================================================
+# -----------------------
+# Child 1 (colour shift)
+# -----------------------
 
 class ColourShift(ImageAlteration):
-    """
-    Shifts the hue of a circular region.
-    The change should be noticeable on close inspection but not glaringly obvious.
-    """
+    def apply(self, image):
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
 
-    def __init__(self, x: int, y: int, r: int, shift: int = 40):
-        """
-        Args:
-            shift: how many degrees to rotate the hue (0-179 in OpenCV HSV)
-        """
-        super().__init__(x, y, r)
-        self.shift = shift
+        shift = np.random.randint(-25, 25, region.shape)
+        region = np.clip(region + shift, 0, 255).astype(np.uint8)
 
-    def apply(self, image: np.ndarray) -> np.ndarray:
-        """Rotate the hue channel within the circular region."""
-        pass
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
+        return image
 
+# ----------------------------
+# Child 2 (brightness change)
+# ----------------------------
 
-# =============================================================================
-# CHILD CLASS 2 — BlurAlteration
-# =============================================================================
+class BrightnessChange (ImageAlteration):
+    def apply(self, image):
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
 
-class BlurAlteration(ImageAlteration):
-    """
-    Applies a gaussian blur to a circular region.
-    """
+        value = random.randint(-40, 40)
+        region = np.clip(region + value, 0, 255).astype(np.uint8)
 
-    def __init__(self, x: int, y: int, r: int, strength: int = 15):
-        """
-        Args:
-            strength: blur kernel size — must be a positive odd number
-        """
-        super().__init__(x, y, r)
-        self.strength = strength
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
+        return image
 
-    def apply(self, image: np.ndarray) -> np.ndarray:
-        """Apply gaussian blur within the circular region."""
-        pass
+# -----------------
+# Child 3 (shape)
+# -----------------
 
+class AddShape(ImageAlteration):
+    def apply(self, image):
+        overlay = image.copy()
 
-# =============================================================================
-# CHILD CLASS 3 — BrightnessAlteration
-# =============================================================================
+        center = (self.x + self.w // 2, self.y + self.h // 2)
+        radius = min(self.w, self.h) // 3
 
-class BrightnessAlteration(ImageAlteration):
-    """
-    Increases or decreases the brightness of a circular region.
-    """
+        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-    def __init__(self, x: int, y: int, r: int, amount: int = 60):
-        """
-        Args:
-            amount: brightness adjustment. Positive = brighter, negative = darker.
-        """
-        super().__init__(x, y, r)
-        self.amount = amount
+        cv2.circle(overlay, center, radius, color, -1)
 
-    def apply(self, image: np.ndarray) -> np.ndarray:
-        """Adjust brightness within the circular region."""
-        pass
+        roi = image[self.y: self.y + self.h, self.x: self.x + self.w]
+        overlay_roi = overlay[self.y: self.y + self.h, self.x: self.x + self.w]
 
+        alpha = 0.45
+        blended = cv2.addWeighted(overlay_roi, alpha, roi, 1 - alpha, 0)
 
-# =============================================================================
-# MAIN CLASS — ImageProcessor
-# =============================================================================
+        image[self.y: self.y + self.h, self.x: self.x + self.w] = blended
 
-class ImageProcessor:
-    """
-    Loads an image, creates a modified copy with exactly 5 non-overlapping
-    circular differences, and exposes both images and region data to the app.
-    """
+        return image
 
-    # Available alteration types — add new child classes here to extend
-    ALTERATION_TYPES = [ColourShift, BlurAlteration, BrightnessAlteration]
+# ---------------------------
+# Image Processor
+# ---------------------------
 
-    # Radius range for each difference circle (pixels)
-    MIN_RADIUS = 20
-    MAX_RADIUS = 50
+class ImageProcessor:  
+    def __init__ (self):
+        self.num_differences = 5
+        self.original = None
+        self.modified = None
+        self.differences = []
 
-    # Number of differences to generate
-    NUM_DIFFERENCES = 5
+    def load_image(self, image_path): ### CHANGED: new — called by GUI after file dialog
+        self.original = cv2.imread(image_path)
+        if self.original is None:
+            return False
+        self.modified = self.original.copy()
+        self.differences = []
+        self.generate_differences()
+        return True
+ 
+    def is_loaded(self):              ### CHANGED: new — GUI checks this before doing anything
+        return self.original is not None
+ 
+    def get_original(self):           ### CHANGED: new — GUI fetches display copy
+        return self.original.copy()
+ 
+    def get_modified(self):           ### CHANGED: new — GUI fetches display copy
+        return self.modified.copy()
+ 
+    def get_regions(self):            ### CHANGED: new — converts differences to dicts for GameState
+        regions = []
+        for (x, y, w, h, _) in self.differences:
+            regions.append({"x": x + w // 2, "y": y + h // 2, "r": max(min(w, h) // 2, 20), "found": False})
+        return regions
+ 
 
-    def __init__(self):
-        self.original = None       # unmodified image (numpy array)
-        self.modified = None       # image with differences applied (numpy array)
-        self.alterations = []      # list of ImageAlteration instances
-        self.image_path = None
+    def generate_differences(self):
+        height, width, _ = self.original.shape
 
-    def load_image(self, path: str) -> bool:
-        """
-        Load an image from disk and generate 5 differences on a copy.
+        attempts = 0
+        max_attempts = 500
 
-        Args:
-            path: absolute or relative path to the image file (JPG, PNG, BMP)
+        while len(self.differences) < self.num_differences and attempts < max_attempts:
+            attempts += 1
 
-        Returns:
-            True if the image loaded successfully, False otherwise.
-        """
-        pass
+            w = random.randint(width // 12, width // 6)
+            h = random.randint(height // 12, height // 6)
 
-    def generate_differences(self, image: np.ndarray) -> tuple:
-        """
-        Introduce exactly 5 non-overlapping circular differences into a copy
-        of the image. Alteration type and position are chosen randomly each time.
+            x = random.randint(0, width - w)
+            y = random.randint(0, height - h)
 
-        Args:
-            image: the image to modify (numpy array)
+            new_rect = (x, y, w, h)
 
-        Returns:
-            Tuple of (modified image, list of ImageAlteration instances)
-        """
-        pass
+            if not self._is_overlapping(new_rect):
 
-    def get_original(self) -> np.ndarray:
-        """Return the original unmodified image."""
-        pass
+                alteration_class = random.choice([ColourShift, BrightnessChange, AddShape])
 
-    def get_modified(self) -> np.ndarray:
-        """Return the modified image with differences applied."""
-        pass
+                alteration = alteration_class(x, y, w, h)
+                self.modified = alteration.apply(self.modified)
 
-    def get_regions(self) -> list:
-        """
-        Return the list of difference regions in standard format.
+                self.differences.append((x, y, w, h, alteration_class.__name__))
 
-        Returns:
-            List of dicts: [{'x': int, 'y': int, 'r': int, 'found': False}, ...]
-        """
-        pass
+        if len(self.differences) < self.num_differences:
+            raise RuntimeError("Failed to generate differences") 
+    
+    def get_images(self):
+        return self.original, self.modified
 
-    def is_loaded(self) -> bool:
-        """Returns True if an image has been successfully loaded."""
-        pass
+    def get_differences(self):
+        return self.differences
+
+    def is_click_inside(self, click_x, click_y, tolerance = 10):
+        for (x, y, w, h, _) in self.differences:
+            if (x - tolerance <= click_x <= x + w + tolerance and y - tolerance <= click_y <= y + h + tolerance):
+                return True
+        return False
+
+    def draw_debug(self):
+        debug = self.modified.copy()
+
+        for (x, y, w, h, _) in self.differences:
+            cv2.rectangle(debug, (x, y), (x + w, y + h), (0, 0, 255), 2)
+        return debug 
+
+    def _is_overlapping(self, new_rect):
+        nx, ny, nw, nh = new_rect
+
+        for (x, y, w, h, _) in self.differences:
+            if (nx < x + w and nx + nw > x and ny < y + h and ny + nh > y):
+                return True
+        return False

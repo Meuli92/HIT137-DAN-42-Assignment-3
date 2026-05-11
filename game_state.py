@@ -65,3 +65,8 @@ class GameState:
 
     def is_complete(self):
         return self.found_count >= self.total_differences
+
+    def is_locked(self):
+        return self.mistakes >= self.max_mistakes
+
+

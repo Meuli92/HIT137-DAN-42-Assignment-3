@@ -226,7 +226,7 @@ class SpotDifferenceGUI:
  # Show wrong message in red
            self.status_label.config(text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3", fg="red")
  # Reset back after 2 seconds
-           self.root.after(2000, lambda: self.status_label.config(text="Find the remaining differences!",fg="black")
+           self.root.after(2000, lambda: self.status_label.config(text="Find the remaining differences!",fg="black"))
             if self.state.is_locked():
         messagebox.showwarning(
             "Too many mistakes",

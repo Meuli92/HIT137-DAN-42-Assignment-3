@@ -217,13 +217,13 @@ class SpotDifferenceGUI:
             for region in self.state.get_found_regions():
                 cv2.circle(
                     self.original_display,
-                    (region['x'], region['y']),
+                    (region['center_x'], region['center_y']),
                     region['r'],
                     (0, 0, 255),3)
 
                 cv2.circle(
                     self.modified_display,
-                    (region['x'], region['y']),
+                    (region['center_x'], region['center_y']),
                     region['r'],
                     (0, 0, 255),3)
 

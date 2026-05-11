@@ -199,26 +199,26 @@ class SpotDifferenceGUI:
         self.modified_display = None
         self._drawn_regions = []
 
-    def check_click(self, event):
-        if not self.processor.is_loaded():
-            return
+def check_click(self, event):
+    if not self.processor.is_loaded():
+        return
 
     scale_x = self.original_display.shape[1] / self.CANVAS_WIDTH
     scale_y = self.original_display.shape[0] / self.CANVAS_HEIGHT
-    result = self.state.check_click(int(event.x * scale_x), int(event.y * scale_y))
 
-        if result == 'hit':
-            for region in self.state.get_found_regions():
+    result = self.state.check_click(
+        int(event.x * scale_x),
+        int(event.y * scale_y)
+    )
+
+    if result == 'hit':
+
+        for region in self.state.get_found_regions():
             cv2.circle(self.original_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
             cv2.circle(self.modified_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
 
-        orig = cv2.cvtColor(
-            cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
-            cv2.COLOR_BGR2RGB)
-
-        mod = cv2.cvtColor(
-            cv2.resize(self.modified_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
-            cv2.COLOR_BGR2RGB)
+        orig = cv2.cvtColor(cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
+        mod = cv2.cvtColor(cv2.resize(self.modified_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
 
         self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
         self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
@@ -231,23 +231,18 @@ class SpotDifferenceGUI:
         self.status_label.config(text="Correct! Keep going.")
 
         if self.state.is_complete():
-            messagebox.showinfo(
-                "Well done!",
-                "You found all 5 differences!\nLoad a new image to keep playing." )
-
+            messagebox.showinfo("Well done!", "You found all 5 differences!")
             self.modified_canvas.unbind("<Button-1>")
 
     elif result == 'miss':
 
-        self.mistakes_label.config(
-            text=f"Mistakes: {self.state.get_mistakes()} / 3"  )
+        self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
 
-        # Show wrong message in red
         self.status_label.config(
             text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3",
-            fg="red" )
+            fg="red"
+        )
 
-        # Reset back after 2 seconds
         self.root.after(
             2000,
             lambda: self.status_label.config(
@@ -257,13 +252,10 @@ class SpotDifferenceGUI:
         )
 
         if self.state.is_locked():
-
             messagebox.showwarning(
                 "Too many mistakes",
-                f"You made 3 mistakes.\n"
-                f"You found {self.state.found_count} out of 5.\n"
-                "Load a new image to try again.")
-
+                f"You made 3 mistakes.\nYou found {self.state.found_count} out of 5."
+            )
             self.modified_canvas.unbind("<Button-1>")
 
     elif result == 'already_found':

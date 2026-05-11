@@ -218,7 +218,7 @@ class SpotDifferenceGUI:
             self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
             self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
             self.status_label.config(text="Correct! Keep going.")
-            if self.state.is_complete():
+        if self.state.is_complete():
                 messagebox.showinfo("Well done!", "You found all 5 differences!\nLoad a new image to keep playing.")
                 self.modified_canvas.unbind("<Button-1>")
         elif result == 'miss':
@@ -227,7 +227,7 @@ class SpotDifferenceGUI:
            self.status_label.config(text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3", fg="red")
  # Reset back after 2 seconds
            self.root.after(2000, lambda: self.status_label.config(text="Find the remaining differences!",fg="black"))
-           if self.state.is_locked():
+        if self.state.is_locked():
         messagebox.showwarning(
             "Too many mistakes",
             f"You made 3 mistakes.\n"

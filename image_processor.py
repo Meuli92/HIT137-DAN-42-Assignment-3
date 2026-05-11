@@ -102,7 +102,7 @@ class ImageProcessor:
     def get_regions(self):            ### CHANGED: new — converts differences to dicts for GameState
         regions = []
         for (x, y, w, h, _) in self.differences:
-            regions.append({"x": x + w // 2, "y": y + h // 2, "r": max(min(w, h) // 2, 20), "found": False})
+            regions.append({"x": x, "y": y, "w": w, "h": h, "center_x": x + w // 2, "center_y": y + h // 2, "r": max(min(w, h) // 2, 20), "found": False})
         return regions
  
 

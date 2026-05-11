@@ -31,10 +31,8 @@ class GameState:
 
         for region in self.regions:
             # Calculate how close the click was to the center of the difference
-            distance = self._get_distance(x, y, region['x'], region['y'])
-            
-            # Complexity Detection: Smaller radius = harder to hit
-            if distance <= region['r']:
+            if (region['x'] <= x <= region['x'] + region['w']
+            and region['y'] <= y <= region['y'] + region['h']):
                 if region['found']:
                     return 'already_found'
                 

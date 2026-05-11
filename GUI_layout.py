@@ -200,15 +200,15 @@ class SpotDifferenceGUI:
         self._drawn_regions = []
 
     def check_click(self, event):
-    if not self.processor.is_loaded():
-        return
+        if not self.processor.is_loaded():
+            return
 
     scale_x = self.original_display.shape[1] / self.CANVAS_WIDTH
     scale_y = self.original_display.shape[0] / self.CANVAS_HEIGHT
     result = self.state.check_click(int(event.x * scale_x), int(event.y * scale_y))
 
-    if result == 'hit':
-        for region in self.state.get_found_regions():
+        if result == 'hit':
+            for region in self.state.get_found_regions():
             cv2.circle(self.original_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
             cv2.circle(self.modified_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
 

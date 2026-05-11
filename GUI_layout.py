@@ -200,45 +200,77 @@ class SpotDifferenceGUI:
         self._drawn_regions = []
 
     def check_click(self, event):
-        if not self.processor.is_loaded():
-            return
-        scale_x = self.original_display.shape[1] / self.CANVAS_WIDTH
-        scale_y = self.original_display.shape[0] / self.CANVAS_HEIGHT
-        result = self.state.check_click(int(event.x * scale_x), int(event.y * scale_y))
-        if result == 'hit':
-            for region in self.state.get_found_regions():
-                cv2.circle(self.original_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
-                cv2.circle(self.modified_display,  (region['x'], region['y']), region['r'], (0, 0, 255), 3)
-            orig = cv2.cvtColor(cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
-            mod  = cv2.cvtColor(cv2.resize(self.modified_display,  (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
-            self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
-            self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-            self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
-            self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
-            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
-            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
-            self.status_label.config(text="Correct! Keep going.")
-        if self.state.is_complete():
-                messagebox.showinfo("Well done!", "You found all 5 differences!\nLoad a new image to keep playing.")
-                self.modified_canvas.unbind("<Button-1>")
-        elif result == 'miss':
-           self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
- # Show wrong message in red
-           self.status_label.config(text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3", fg="red")
- # Reset back after 2 seconds
-           self.root.after(2000, lambda: self.status_label.config(text="Find the remaining differences!",fg="black"))
-        if self.state.is_locked():
-        messagebox.showwarning(
-            "Too many mistakes",
-            f"You made 3 mistakes.\n"
-            f"You found {self.state.found_count} out of 5.\n"
-            "Load a new image to try again.")
-            self.modified_canvas.unbind("<Button-1>")
-        elif result == 'already_found':
-            self.status_label.config(text="Already found that one!")
-        elif result == 'locked':
-            self.status_label.config(text="No more guesses. Load a new image to play again.")
+    if not self.processor.is_loaded():
+        return
 
+    scale_x = self.original_display.shape[1] / self.CANVAS_WIDTH
+    scale_y = self.original_display.shape[0] / self.CANVAS_HEIGHT
+    result = self.state.check_click(int(event.x * scale_x), int(event.y * scale_y))
+
+    if result == 'hit':
+        for region in self.state.get_found_regions():
+            cv2.circle(self.original_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
+            cv2.circle(self.modified_display, (region['x'], region['y']), region['r'], (0, 0, 255), 3)
+
+        orig = cv2.cvtColor(
+            cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+            cv2.COLOR_BGR2RGB)
+
+        mod = cv2.cvtColor(
+            cv2.resize(self.modified_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+            cv2.COLOR_BGR2RGB)
+
+        self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
+        self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
+
+        self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
+        self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
+
+        self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
+        self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
+        self.status_label.config(text="Correct! Keep going.")
+
+        if self.state.is_complete():
+            messagebox.showinfo(
+                "Well done!",
+                "You found all 5 differences!\nLoad a new image to keep playing." )
+
+            self.modified_canvas.unbind("<Button-1>")
+
+    elif result == 'miss':
+
+        self.mistakes_label.config(
+            text=f"Mistakes: {self.state.get_mistakes()} / 3"  )
+
+        # Show wrong message in red
+        self.status_label.config(
+            text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3",
+            fg="red" )
+
+        # Reset back after 2 seconds
+        self.root.after(
+            2000,
+            lambda: self.status_label.config(
+                text="Find the remaining differences!",
+                fg="black"
+            )
+        )
+
+        if self.state.is_locked():
+
+            messagebox.showwarning(
+                "Too many mistakes",
+                f"You made 3 mistakes.\n"
+                f"You found {self.state.found_count} out of 5.\n"
+                "Load a new image to try again.")
+
+            self.modified_canvas.unbind("<Button-1>")
+
+    elif result == 'already_found':
+        self.status_label.config(text="Already found that one!")
+
+    elif result == 'locked':
+        self.status_label.config(text="No more guesses. Load a new image to play again.")
 
 if __name__ == "__main__":
     root = tk.Tk()

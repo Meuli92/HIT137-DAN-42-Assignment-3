@@ -62,3 +62,6 @@ class GameState:
 
     def get_mistakes(self):
         return self.mistakes
+
+    def is_complete(self):
+        return self.found_count >= self.total_differences

@@ -214,9 +214,43 @@ class SpotDifferenceGUI:
    
         if result == 'hit':
 
+            for region in self.state.get_found_regions():
+                cv2.circle(
+                    self.original_display,
+                    (region['x'], region['y']),
+                    region['r'],
+                    (0, 0, 255),
+                    3
+                )
+
+                cv2.circle(
+                    self.modified_display,
+                    (region['x'], region['y']),
+                    region['r'],
+                    (0, 0, 255),
+                    3
+                )
+
+            orig = cv2.cvtColor(
+                cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+                cv2.COLOR_BGR2RGB
+            )
+
+            mod = cv2.cvtColor(
+                cv2.resize(self.modified_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+                cv2.COLOR_BGR2RGB
+            )
+
+            self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
+            self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
+
+            self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
+            self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
+
             self.remaining_label.config(
                 text=f"Remaining Differences: {self.state.get_remaining()}"
             )
+
             self.mistakes_label.config(
                 text=f"Mistakes: {self.state.get_mistakes()} / 3"
             )

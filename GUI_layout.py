@@ -169,6 +169,7 @@ class SpotDifferenceGUI:
             self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
             self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
             self.status_label.config(text="Image loaded. Find the 5 differences!")
+            self.modified_canvas.bind("<Button-1>", self.check_click)
   
     def reveal_differences(self):
         if not self.processor.is_loaded():

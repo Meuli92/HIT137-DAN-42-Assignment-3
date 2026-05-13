@@ -24,12 +24,10 @@ class SpotDifferenceGUI:
         self.modified_photo = None
         self.original_display = None
         self.modified_display = None
-        self._drawn_regions = []
  
         self.create_widgets()
 
     def create_widgets(self):
-        # Title
         title_label = tk.Label(
             self.root,
             text="Spot the Difference Game",
@@ -37,7 +35,6 @@ class SpotDifferenceGUI:
         )
         title_label.pack(pady=10)
 
-        # Top button frame
         button_frame = tk.Frame(self.root)
         button_frame.pack(pady=10)
 
@@ -68,7 +65,6 @@ class SpotDifferenceGUI:
         )
         self.restart_button.grid(row=0, column=2, padx=10)
 
-        # Score information frame
         info_frame = tk.Frame(self.root)
         info_frame.pack(pady=10)
 
@@ -93,11 +89,9 @@ class SpotDifferenceGUI:
         )
         self.status_label.grid(row=0, column=2, padx=30)
 
-        # Image display frame
         image_frame = tk.Frame(self.root)
         image_frame.pack(pady=20)
 
-        # Original image section
         original_frame = tk.Frame(image_frame)
         original_frame.grid(row=0, column=0, padx=20)
 
@@ -118,7 +112,6 @@ class SpotDifferenceGUI:
         )
         self.original_canvas.pack()
 
-        # Modified image section
         modified_frame = tk.Frame(image_frame)
         modified_frame.grid(row=0, column=1, padx=20)
 
@@ -153,7 +146,12 @@ class SpotDifferenceGUI:
         )
 
         if file_path:
-            success = self.processor.load_image(file_path)
+            try:
+                success = self.processor.load_image(file_path)
+            except RuntimeError:
+                messagebox.showerror("Error",
+                                 "Could not generate differences. Try a larger image.")
+                return
             if not success:
                 messagebox.showerror("Error",
                                      "Could not load image. Please try another file.")
@@ -210,8 +208,7 @@ class SpotDifferenceGUI:
         self.modified_canvas.create_image(0, 0,
                                           anchor=tk.NW,
                                           image=self.modified_photo)
-        self.status_label.config(text="Differences revealed.\
-                                 Load a new image to play again.")
+        self.status_label.config(text="Differences revealed. Load a new image to play again.")
         self.modified_canvas.unbind("<Button-1>")
 
     def restart_game(self):
@@ -226,7 +223,6 @@ class SpotDifferenceGUI:
         self.state = GameState()
         self.original_display = None
         self.modified_display = None
-        self._drawn_regions = []
 
     def check_click(self, event):
         if not self.processor.is_loaded():
@@ -286,8 +282,7 @@ class SpotDifferenceGUI:
             if self.state.is_complete():
                 messagebox.showinfo(
                     "Well done!",
-                    "You found all 5 differences!\
-                    \nLoad a new image to play again.")
+                    "You found all 5 differences!\nLoad a new image to play again.")
                 self.modified_canvas.unbind("<Button-1>")
 
         elif result == 'miss':
@@ -309,8 +304,7 @@ class SpotDifferenceGUI:
                 messagebox.showwarning(
                     "Too many mistakes",
                     f"You made 3 mistakes.\n"
-                    f"You found {self.state.found_count} out of 5.\
-                    \nLoad a new image to try again")
+                    f"You found {self.state.found_count} out of 5\nLoad a new image to try again")
                 self.modified_canvas.unbind("<Button-1>")
              
         elif result == 'already_found':
@@ -320,8 +314,7 @@ class SpotDifferenceGUI:
          
         elif result == 'locked':
             self.status_label.config(
-                text="No more guesses.\
-                    \nLoad a new image to play again.",
+                text="No more guesses.\nLoad a new image to play again.",
                 fg="darkred")
 
 if __name__ == "__main__":

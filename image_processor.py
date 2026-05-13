@@ -3,41 +3,33 @@ import numpy as np
 import random 
 
 class ImageAlteration:
-  def __init__(self, x, y, w, h):
-      self.x = x
-      self.y = y
-      self.w = w
-      self.h = h
+    def __init__(self, x, y, w, h):
+        self.x = x
+        self.y = y
+        self.w = w
+        self.h = h
 
-  def apply(self, image):
-      raise NotImplementedError
+    def apply(self, image):
+        raise NotImplementedError
 
 class ColourShift(ImageAlteration):
     def apply(self, image):
-        region = image[self.y:self.y
-        + self.h, self.x: self.x
-        + self.w].astype(np.int16)
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
 
         shift = np.random.randint(-25, 25, region.shape)
         region = np.clip(region + shift, 0, 255).astype(np.uint8)
 
-        image[self.y:self.y
-        + self.h, self.x:self.x
-        + self.w] = region
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
         return image
 
-class BrightnessChange (ImageAlteration):
+class BrightnessChange(ImageAlteration):
     def apply(self, image):
-        region = image[self.y:self.y
-        + self.h, self.x: self.x
-        + self.w].astype(np.int16)
+        region = image[self.y:self.y + self.h, self.x: self.x + self.w].astype(np.int16)
 
         value = random.randint(-40, 40)
         region = np.clip(region + value, 0, 255).astype(np.uint8)
 
-        image[self.y:self.y
-        + self.h, self.x:self.x
-        + self.w] = region
+        image[self.y:self.y + self.h, self.x:self.x + self.w] = region
         return image
 
 class AddShape(ImageAlteration):
@@ -68,8 +60,8 @@ class AddShape(ImageAlteration):
 
         return image
 
-class ImageProcessor:  
-    def __init__ (self):
+class ImageProcessor:
+    def __init__(self):
         self.num_differences = 5
         self.original = None
         self.modified = None
@@ -135,26 +127,6 @@ class ImageProcessor:
 
         if len(self.differences) < self.num_differences:
             raise RuntimeError("Failed to generate differences") 
-    
-    def get_images(self):
-        return self.original, self.modified
-
-    def get_differences(self):
-        return self.differences
-
-    def is_click_inside(self, click_x, click_y, tolerance = 10):
-        for (x, y, w, h, _) in self.differences:
-            if (x - tolerance <= click_x <= x + w + tolerance
-            and y - tolerance <= click_y <= y + h + tolerance):
-                return True
-        return False
-
-    def draw_debug(self):
-        debug = self.modified.copy()
-
-        for (x, y, w, h, _) in self.differences:
-            cv2.rectangle(debug, (x, y), (x + w, y + h), (0, 0, 255), 2)
-        return debug 
 
     def _is_overlapping(self, new_rect):
         nx, ny, nw, nh = new_rect

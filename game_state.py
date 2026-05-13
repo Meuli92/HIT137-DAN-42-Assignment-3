@@ -1,11 +1,11 @@
-import math
-
 class GameState:
 
     def __init__(self):
         self.regions = []
         self.mistakes = 0
+        self.max_mistakes = 3
         self.found_count = 0
+        self.total_differences = 5
 
     def new_round(self, regions:list):
         self.regions = regions
@@ -13,10 +13,6 @@ class GameState:
         self.max_mistakes = 3
         self.found_count = 0
         self.total_differences = 5
-
-    def _get_distance(self, x1, y1, x2, y2):
-        return math.sqrt((x2 - x1)**2
-                         + (y2 - y1)**2)
 
     def check_click(self, x: int, y: int) -> str:
         if self.mistakes >= self.max_mistakes:
@@ -35,7 +31,7 @@ class GameState:
         self.mistakes += 1
         return 'miss'
     
-    def get_found_regions(self):
+    def get_found_regions(self) -> list:
         return [r for r in self.regions if r['found']]
 
     def get_unfound_regions(self) -> list:
@@ -46,16 +42,14 @@ class GameState:
                 or
                 self.found_count == self.total_differences)
     
-    def get_remaining(self):
+    def get_remaining(self) -> int:
         return self.total_differences - self.found_count
 
-    def get_mistakes(self):
+    def get_mistakes(self) -> int:
         return self.mistakes
 
-    def is_complete(self):
-        return self.found_count >= self.total_differences
+    def is_complete(self) -> bool:
+        return self.found_count == self.total_differences
 
-    def is_locked(self):
+    def is_locked(self) -> bool:
         return self.mistakes >= self.max_mistakes
-
-

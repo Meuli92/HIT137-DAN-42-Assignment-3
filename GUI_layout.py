@@ -156,8 +156,7 @@ class SpotDifferenceGUI:
             success = self.processor.load_image(file_path)
             if not success:
                 messagebox.showerror("Error",
-                                     "Could not load image. \
-                                        Please try another file.")
+                                     "Could not load image. Please try another file.")
                 return
             self.state.new_round(self.processor.get_regions())
             self.original_display = self.processor.get_original()
@@ -176,12 +175,9 @@ class SpotDifferenceGUI:
                                               image=self.original_photo)
             self.modified_canvas.create_image(0, 0, anchor=tk.NW,
                                               image=self.modified_photo)
-            self.remaining_label.config(text=f"Remaining Differences: \
-                                         {self.state.get_remaining()}")
-            self.mistakes_label.config(text=f"Mistakes: \
-                                        {self.state.get_mistakes()} / 3")
-            self.status_label.config(text=
-                                     "Image loaded. Find the 5 differences!")
+            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
+            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
+            self.status_label.config(text="Image loaded. Find the 5 differences!")
             self.modified_canvas.bind("<Button-1>", self.check_click)
   
     def reveal_differences(self):
@@ -189,13 +185,13 @@ class SpotDifferenceGUI:
             return
         for region in self.state.get_unfound_regions():
             cv2.circle(self.original_display,
-                       (region['x'],
-                        region['y']),
+                       (region['center_x'],
+                        region['center_y']),
                         region['r'],
                         (255, 0, 0), 3)
             cv2.circle(self.modified_display,
-                       (region['x'],
-                        region['y']),
+                       (region['center_x'],
+                        region['center_y']),
                         region['r'],
                         (255, 0, 0), 3)
         orig = cv2.cvtColor(cv2.resize(self.original_display,
@@ -215,7 +211,7 @@ class SpotDifferenceGUI:
                                           anchor=tk.NW,
                                           image=self.modified_photo)
         self.status_label.config(text="Differences revealed.\
-                                 \nLoad a new image to play again.")
+                                 Load a new image to play again.")
         self.modified_canvas.unbind("<Button-1>")
 
     def restart_game(self):
@@ -279,11 +275,9 @@ class SpotDifferenceGUI:
                                               anchor=tk.NW,
                                               image=self.modified_photo)
 
-            self.remaining_label.config(
-                text=f"Remaining Differences: {self.state.get_remaining()}")
+            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
 
-            self.mistakes_label.config(
-                text=f"Mistakes: {self.state.get_mistakes()} / 3")
+            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
 
             self.status_label.config(
                 text="Correct! Keep going.",

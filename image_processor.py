@@ -23,8 +23,7 @@ class ColourShift(ImageAlteration):
 
         image[self.y:self.y
         + self.h, self.x:self.x
-        + self.w]
-        = region
+        + self.w] = region
         return image
 
 class BrightnessChange (ImageAlteration):
@@ -38,8 +37,7 @@ class BrightnessChange (ImageAlteration):
 
         image[self.y:self.y
         + self.h, self.x:self.x
-        + self.w]
-        = region
+        + self.w] = region
         return image
 
 class AddShape(ImageAlteration):
@@ -49,17 +47,24 @@ class AddShape(ImageAlteration):
         center = (self.x + self.w // 2, self.y + self.h // 2)
         radius = min(self.w, self.h) // 3
 
-        color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+        color = (random.randint(0, 255),
+                 random.randint(0, 255),
+                 random.randint(0, 255))
 
         cv2.circle(overlay, center, radius, color, -1)
 
-        roi = image[self.y: self.y + self.h, self.x: self.x + self.w]
-        overlay_roi = overlay[self.y: self.y + self.h, self.x: self.x + self.w]
+        roi = image[self.y: self.y + self.h,
+                    self.x: self.x + self.w]
+        overlay_roi = overlay[self.y: self.y + self.h,
+                              self.x: self.x + self.w]
 
         alpha = 0.45
-        blended = cv2.addWeighted(overlay_roi, alpha, roi, 1 - alpha, 0)
+        blended = cv2.addWeighted(overlay_roi,
+                                  alpha, roi,
+                                  1 - alpha, 0)
 
-        image[self.y: self.y + self.h, self.x: self.x + self.w] = blended
+        image[self.y: self.y + self.h,
+              self.x: self.x + self.w] = blended
 
         return image
 
@@ -104,7 +109,8 @@ class ImageProcessor:
         attempts = 0
         max_attempts = 500
 
-        while len(self.differences) < self.num_differences and attempts < max_attempts:
+        while (len(self.differences) < self.num_differences 
+               and attempts < max_attempts):
             attempts += 1
 
             w = random.randint(width // 12, width // 6)
@@ -117,12 +123,15 @@ class ImageProcessor:
 
             if not self._is_overlapping(new_rect):
 
-                alteration_class = random.choice([ColourShift, BrightnessChange, AddShape])
+                alteration_class = random.choice([ColourShift,
+                                                  BrightnessChange,
+                                                  AddShape])
 
                 alteration = alteration_class(x, y, w, h)
                 self.modified = alteration.apply(self.modified)
 
-                self.differences.append((x, y, w, h, alteration_class.__name__))
+                self.differences.append((x, y, w, h,
+                                         alteration_class.__name__))
 
         if len(self.differences) < self.num_differences:
             raise RuntimeError("Failed to generate differences") 

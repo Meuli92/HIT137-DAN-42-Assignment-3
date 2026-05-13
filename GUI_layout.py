@@ -155,35 +155,67 @@ class SpotDifferenceGUI:
         if file_path:
             success = self.processor.load_image(file_path)
             if not success:
-                messagebox.showerror("Error", "Could not load image. Please try another file.")
+                messagebox.showerror("Error",
+                                     "Could not load image. \
+                                        Please try another file.")
                 return
             self.state.new_round(self.processor.get_regions())
             self.original_display = self.processor.get_original()
             self.modified_display = self.processor.get_modified()
-            orig = cv2.cvtColor(cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
-            mod  = cv2.cvtColor(cv2.resize(self.modified_display,  (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
+            orig = cv2.cvtColor(cv2.resize(self.original_display,
+                                           (self.CANVAS_WIDTH,
+                                            self.CANVAS_HEIGHT)),
+                                           cv2.COLOR_BGR2RGB)
+            mod  = cv2.cvtColor(cv2.resize(self.modified_display,
+                                           (self.CANVAS_WIDTH,
+                                            self.CANVAS_HEIGHT)),
+                                           cv2.COLOR_BGR2RGB)
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-            self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
-            self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
-            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
-            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
-            self.status_label.config(text="Image loaded. Find the 5 differences!")
+            self.original_canvas.create_image(0, 0, anchor=tk.NW,
+                                              image=self.original_photo)
+            self.modified_canvas.create_image(0, 0, anchor=tk.NW,
+                                              image=self.modified_photo)
+            self.remaining_label.config(text=f"Remaining Differences: \
+                                         {self.state.get_remaining()}")
+            self.mistakes_label.config(text=f"Mistakes: \
+                                        {self.state.get_mistakes()} / 3")
+            self.status_label.config(text=
+                                     "Image loaded. Find the 5 differences!")
             self.modified_canvas.bind("<Button-1>", self.check_click)
   
     def reveal_differences(self):
         if not self.processor.is_loaded():
             return
         for region in self.state.get_unfound_regions():
-            cv2.circle(self.original_display, (region['x'], region['y']), region['r'], (255, 0, 0), 3)
-            cv2.circle(self.modified_display,  (region['x'], region['y']), region['r'], (255, 0, 0), 3)
-        orig = cv2.cvtColor(cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
-        mod  = cv2.cvtColor(cv2.resize(self.modified_display,  (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)), cv2.COLOR_BGR2RGB)
+            cv2.circle(self.original_display,
+                       (region['x'],
+                        region['y']),
+                        region['r'],
+                        (255, 0, 0), 3)
+            cv2.circle(self.modified_display,
+                       (region['x'],
+                        region['y']),
+                        region['r'],
+                        (255, 0, 0), 3)
+        orig = cv2.cvtColor(cv2.resize(self.original_display,
+                                       (self.CANVAS_WIDTH,
+                                        self.CANVAS_HEIGHT)),
+                                        cv2.COLOR_BGR2RGB)
+        mod  = cv2.cvtColor(cv2.resize(self.modified_display,
+                                       (self.CANVAS_WIDTH,
+                                        self.CANVAS_HEIGHT)),
+                                        cv2.COLOR_BGR2RGB)
         self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
         self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-        self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
-        self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
-        self.status_label.config(text="Differences revealed. Load a new image to play again.")
+        self.original_canvas.create_image(0, 0,
+                                          anchor=tk.NW,
+                                          image=self.original_photo)
+        self.modified_canvas.create_image(0, 0,
+                                          anchor=tk.NW,
+                                          image=self.modified_photo)
+        self.status_label.config(text="Differences revealed.\
+                                 \nLoad a new image to play again.")
         self.modified_canvas.unbind("<Button-1>")
 
     def restart_game(self):
@@ -228,18 +260,24 @@ class SpotDifferenceGUI:
                     (0, 0, 255),3)
 
             orig = cv2.cvtColor(
-                cv2.resize(self.original_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+                cv2.resize(self.original_display, (self.CANVAS_WIDTH,
+                                                   self.CANVAS_HEIGHT)),
                 cv2.COLOR_BGR2RGB)
 
             mod = cv2.cvtColor(
-                cv2.resize(self.modified_display, (self.CANVAS_WIDTH, self.CANVAS_HEIGHT)),
+                cv2.resize(self.modified_display, (self.CANVAS_WIDTH,
+                                                   self.CANVAS_HEIGHT)),
                 cv2.COLOR_BGR2RGB)
 
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
 
-            self.original_canvas.create_image(0, 0, anchor=tk.NW, image=self.original_photo)
-            self.modified_canvas.create_image(0, 0, anchor=tk.NW, image=self.modified_photo)
+            self.original_canvas.create_image(0, 0,
+                                              anchor=tk.NW,
+                                              image=self.original_photo)
+            self.modified_canvas.create_image(0, 0,
+                                              anchor=tk.NW,
+                                              image=self.modified_photo)
 
             self.remaining_label.config(
                 text=f"Remaining Differences: {self.state.get_remaining()}")
@@ -254,7 +292,8 @@ class SpotDifferenceGUI:
             if self.state.is_complete():
                 messagebox.showinfo(
                     "Well done!",
-                    "You found all 5 differences!\nLoad a new image to play again.")
+                    "You found all 5 differences!\
+                    \nLoad a new image to play again.")
                 self.modified_canvas.unbind("<Button-1>")
 
         elif result == 'miss':
@@ -276,7 +315,8 @@ class SpotDifferenceGUI:
                 messagebox.showwarning(
                     "Too many mistakes",
                     f"You made 3 mistakes.\n"
-                    f"You found {self.state.found_count} out of 5.")
+                    f"You found {self.state.found_count} out of 5.\
+                    \nLoad a new image to try again")
                 self.modified_canvas.unbind("<Button-1>")
              
         elif result == 'already_found':
@@ -286,7 +326,8 @@ class SpotDifferenceGUI:
          
         elif result == 'locked':
             self.status_label.config(
-                text="No more guesses. Load a new image to play again.",
+                text="No more guesses.\
+                    \nLoad a new image to play again.",
                 fg="darkred")
 
 if __name__ == "__main__":

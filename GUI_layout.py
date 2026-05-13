@@ -159,19 +159,15 @@ class SpotDifferenceGUI:
             self.state.new_round(self.processor.get_regions())
             self.original_display = self.processor.get_original()
             self.modified_display = self.processor.get_modified()
-            orig = cv2.cvtColor(cv2.resize(self.original_display,
-                                           (self.CANVAS_WIDTH,
-                                            self.CANVAS_HEIGHT)),
-                                           cv2.COLOR_BGR2RGB)
-            mod  = cv2.cvtColor(cv2.resize(self.modified_display,
-                                           (self.CANVAS_WIDTH,
-                                            self.CANVAS_HEIGHT)),
-                                           cv2.COLOR_BGR2RGB)
+            resized, new_w, new_h = self._fit_to_canvas(self.original_display)
+            orig = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+            resized_mod, _, _ = self._fit_to_canvas(self.modified_display)
+            mod = cv2.cvtColor(resized_mod, cv2.COLOR_BGR2RGB)
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-            self.original_canvas.create_image(0, 0, anchor=tk.NW,
+            self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                               image=self.original_photo)
-            self.modified_canvas.create_image(0, 0, anchor=tk.NW,
+            self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                               image=self.modified_photo)
             self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
             self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
@@ -192,21 +188,15 @@ class SpotDifferenceGUI:
                         region['center_y']),
                         region['r'],
                         (255, 0, 0), 3)
-        orig = cv2.cvtColor(cv2.resize(self.original_display,
-                                       (self.CANVAS_WIDTH,
-                                        self.CANVAS_HEIGHT)),
-                                        cv2.COLOR_BGR2RGB)
-        mod  = cv2.cvtColor(cv2.resize(self.modified_display,
-                                       (self.CANVAS_WIDTH,
-                                        self.CANVAS_HEIGHT)),
-                                        cv2.COLOR_BGR2RGB)
+        resized_orig, _, _ = self._fit_to_canvas(self.original_display)
+        orig = cv2.cvtColor(resized_orig, cv2.COLOR_BGR2RGB)
+        resized_mod, _, _ = self._fit_to_canvas(self.modified_display)
+        mod = cv2.cvtColor(resized_mod, cv2.COLOR_BGR2RGB)
         self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
         self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-        self.original_canvas.create_image(0, 0,
-                                          anchor=tk.NW,
+        self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                           image=self.original_photo)
-        self.modified_canvas.create_image(0, 0,
-                                          anchor=tk.NW,
+        self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                           image=self.modified_photo)
         self.status_label.config(text="Differences revealed. Load a new image to play again.")
         self.modified_canvas.unbind("<Button-1>")
@@ -227,15 +217,27 @@ class SpotDifferenceGUI:
     def check_click(self, event):
         if not self.processor.is_loaded():
             return
+        
+        h, w = self.original_display.shape[:2]
+        scale = min(self.CANVAS_WIDTH / w, self.CANVAS_HEIGHT / h)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
 
-        scale_x = self.original_display.shape[1] / self.CANVAS_WIDTH
-        scale_y = self.original_display.shape[0] / self.CANVAS_HEIGHT
+        offset_x = (self.CANVAS_WIDTH - new_w) // 2
+        offset_y = (self.CANVAS_HEIGHT - new_h) // 2
+
+        img_x = event.x - offset_x
+        img_y = event.y - offset_y
+        if not (0 <= img_x <= new_w and 0 <= img_y <= new_h):
+            return
+
+        scale_x = w / new_w
+        scale_y = h / new_h
 
         result = self.state.check_click(
-            int(event.x * scale_x),
-            int(event.y * scale_y))
+            int(img_x * scale_x),
+            int(img_y * scale_y))
 
-   
         if result == 'hit':
 
             for region in self.state.get_found_regions():
@@ -251,24 +253,18 @@ class SpotDifferenceGUI:
                     region['r'],
                     (0, 0, 255),3)
 
-            orig = cv2.cvtColor(
-                cv2.resize(self.original_display, (self.CANVAS_WIDTH,
-                                                   self.CANVAS_HEIGHT)),
-                cv2.COLOR_BGR2RGB)
+            resized, new_w, new_h = self._fit_to_canvas(self.original_display)
+            orig = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
 
-            mod = cv2.cvtColor(
-                cv2.resize(self.modified_display, (self.CANVAS_WIDTH,
-                                                   self.CANVAS_HEIGHT)),
-                cv2.COLOR_BGR2RGB)
+            resized_mod, _, _ = self._fit_to_canvas(self.modified_display)
+            mod = cv2.cvtColor(resized_mod, cv2.COLOR_BGR2RGB)
 
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
 
-            self.original_canvas.create_image(0, 0,
-                                              anchor=tk.NW,
+            self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                               image=self.original_photo)
-            self.modified_canvas.create_image(0, 0,
-                                              anchor=tk.NW,
+            self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
                                               image=self.modified_photo)
 
             self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
@@ -288,7 +284,7 @@ class SpotDifferenceGUI:
         elif result == 'miss':
 
             self.mistakes_label.config(
-            text=f"Mistakes: {self.state.get_mistakes()} / 3")
+                text=f"Mistakes: {self.state.get_mistakes()} / 3")
 
             self.status_label.config(
                 text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3",
@@ -316,6 +312,13 @@ class SpotDifferenceGUI:
             self.status_label.config(
                 text="No more guesses.\nLoad a new image to play again.",
                 fg="darkred")
+    
+    def _fit_to_canvas(self, image):
+        h, w = image.shape[:2]
+        scale = min(self.CANVAS_WIDTH / w, self.CANVAS_HEIGHT / h)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        return cv2.resize(image, (new_w, new_h)), new_w, new_h
 
 if __name__ == "__main__":
     root = tk.Tk()

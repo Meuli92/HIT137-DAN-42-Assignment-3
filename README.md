@@ -16,10 +16,17 @@
 ```bash
 pip install opencv-python pillow numpy
 ```
+ or:
+ ```bash
+ pip3 install opencv-python pillow numpy
+ ```
 
 ## To run the program:
-Run
+
 ```bash
 python Question_1.py
 ```
-to start
+or:
+```bash
+pyhton3 Question_1.py
+```

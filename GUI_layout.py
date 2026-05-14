@@ -3,16 +3,27 @@ from tkinter import filedialog, messagebox
 import cv2
 import numpy as np
 from PIL import Image, ImageTk
- 
+
 from image_processor import ImageProcessor
 from game_state import GameState
- 
+
 
 class SpotDifferenceGUI:
+    """Main GUI class for the Spot the Difference game.
+
+    Builds and manages the tkinter interface, handles user interaction,
+    and coordinates between ImageProcessor and GameState.
+    """
+
     CANVAS_WIDTH = 500
     CANVAS_HEIGHT = 400
 
     def __init__(self, root):
+        """Initialise the GUI and create all widgets.
+
+        Args:
+            root: The root tkinter window.
+        """
         self.root = root
         self.root.title("Spot the Difference Game")
         self.root.geometry("1100x700")
@@ -24,10 +35,11 @@ class SpotDifferenceGUI:
         self.modified_photo = None
         self.original_display = None
         self.modified_display = None
- 
+
         self.create_widgets()
 
     def create_widgets(self):
+        """Build and lay out all tkinter widgets in the window."""
         title_label = tk.Label(
             self.root,
             text="Spot the Difference Game",
@@ -135,6 +147,11 @@ class SpotDifferenceGUI:
         self.modified_canvas.bind("<Button-1>", self.check_click)
 
     def load_image(self):
+        """Open a file dialog, load the selected image, and start a new round.
+
+        Displays an error dialog if the image cannot be loaded or if
+        differences cannot be generated.
+        """
         file_path = filedialog.askopenfilename(
             title="Select an Image",
             filetypes=[
@@ -150,7 +167,7 @@ class SpotDifferenceGUI:
                 success = self.processor.load_image(file_path)
             except RuntimeError:
                 messagebox.showerror("Error",
-                                 "Could not generate differences. Try a larger image.")
+                                     "Could not generate differences. Try a larger image.")
                 return
             if not success:
                 messagebox.showerror("Error",
@@ -165,43 +182,53 @@ class SpotDifferenceGUI:
             mod = cv2.cvtColor(resized_mod, cv2.COLOR_BGR2RGB)
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-            self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                              image=self.original_photo)
-            self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                              image=self.modified_photo)
-            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
-            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
+            self.original_canvas.create_image(
+                self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+                anchor=tk.CENTER, image=self.original_photo)
+            self.modified_canvas.create_image(
+                self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+                anchor=tk.CENTER, image=self.modified_photo)
+            self.remaining_label.config(
+                text=f"Remaining Differences: {self.state.get_remaining()}")
+            self.mistakes_label.config(
+                text=f"Mistakes: {self.state.get_mistakes()} / 3")
             self.status_label.config(text="Image loaded. Find the 5 differences!")
             self.modified_canvas.bind("<Button-1>", self.check_click)
-  
+
     def reveal_differences(self):
+        """Draw circles on all unfound regions and display them on both canvases.
+
+        Does nothing if no image is loaded. Unbinds the click handler after revealing.
+        """
         if not self.processor.is_loaded():
             return
         for region in self.state.get_unfound_regions():
             cv2.circle(self.original_display,
-                       (region['center_x'],
-                        region['center_y']),
-                        region['r'],
-                        (255, 0, 0), 3)
+                       (region['center_x'], region['center_y']),
+                       region['r'],
+                       (255, 0, 0), 3)
             cv2.circle(self.modified_display,
-                       (region['center_x'],
-                        region['center_y']),
-                        region['r'],
-                        (255, 0, 0), 3)
+                       (region['center_x'], region['center_y']),
+                       region['r'],
+                       (255, 0, 0), 3)
         resized_orig, _, _ = self._fit_to_canvas(self.original_display)
         orig = cv2.cvtColor(resized_orig, cv2.COLOR_BGR2RGB)
         resized_mod, _, _ = self._fit_to_canvas(self.modified_display)
         mod = cv2.cvtColor(resized_mod, cv2.COLOR_BGR2RGB)
         self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
         self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
-        self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                          image=self.original_photo)
-        self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                          image=self.modified_photo)
-        self.status_label.config(text="Differences revealed. Load a new image to play again.")
+        self.original_canvas.create_image(
+            self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+            anchor=tk.CENTER, image=self.original_photo)
+        self.modified_canvas.create_image(
+            self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+            anchor=tk.CENTER, image=self.modified_photo)
+        self.status_label.config(
+            text="Differences revealed. Load a new image to play again.")
         self.modified_canvas.unbind("<Button-1>")
 
     def restart_game(self):
+        """Reset the game to its initial state and clear both canvases."""
         self.remaining_label.config(text="Remaining Differences: 5")
         self.mistakes_label.config(text="Mistakes: 0 / 3")
         self.status_label.config(text="Game restarted.")
@@ -215,9 +242,17 @@ class SpotDifferenceGUI:
         self.modified_display = None
 
     def check_click(self, event):
+        """Handle a mouse click on the modified image canvas.
+
+        Translates canvas coordinates to image coordinates accounting for
+        aspect-ratio scaling and canvas offset, then delegates to GameState.
+
+        Args:
+            event: The tkinter mouse event containing x and y coordinates.
+        """
         if not self.processor.is_loaded():
             return
-        
+
         h, w = self.original_display.shape[:2]
         scale = min(self.CANVAS_WIDTH / w, self.CANVAS_HEIGHT / h)
         new_w = int(w * scale)
@@ -245,13 +280,13 @@ class SpotDifferenceGUI:
                     self.original_display,
                     (region['center_x'], region['center_y']),
                     region['r'],
-                    (0, 0, 255),3)
+                    (0, 0, 255), 3)
 
                 cv2.circle(
                     self.modified_display,
                     (region['center_x'], region['center_y']),
                     region['r'],
-                    (0, 0, 255),3)
+                    (0, 0, 255), 3)
 
             resized, new_w, new_h = self._fit_to_canvas(self.original_display)
             orig = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
@@ -262,18 +297,18 @@ class SpotDifferenceGUI:
             self.original_photo = ImageTk.PhotoImage(Image.fromarray(orig))
             self.modified_photo = ImageTk.PhotoImage(Image.fromarray(mod))
 
-            self.original_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                              image=self.original_photo)
-            self.modified_canvas.create_image(self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2, anchor=tk.CENTER,
-                                              image=self.modified_photo)
+            self.original_canvas.create_image(
+                self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+                anchor=tk.CENTER, image=self.original_photo)
+            self.modified_canvas.create_image(
+                self.CANVAS_WIDTH // 2, self.CANVAS_HEIGHT // 2,
+                anchor=tk.CENTER, image=self.modified_photo)
 
-            self.remaining_label.config(text=f"Remaining Differences: {self.state.get_remaining()}")
-
-            self.mistakes_label.config(text=f"Mistakes: {self.state.get_mistakes()} / 3")
-
-            self.status_label.config(
-                text="Correct! Keep going.",
-                fg="green")
+            self.remaining_label.config(
+                text=f"Remaining Differences: {self.state.get_remaining()}")
+            self.mistakes_label.config(
+                text=f"Mistakes: {self.state.get_mistakes()} / 3")
+            self.status_label.config(text="Correct! Keep going.", fg="green")
 
             if self.state.is_complete():
                 messagebox.showinfo(
@@ -285,7 +320,6 @@ class SpotDifferenceGUI:
 
             self.mistakes_label.config(
                 text=f"Mistakes: {self.state.get_mistakes()} / 3")
-
             self.status_label.config(
                 text=f"Wrong! Mistakes: {self.state.get_mistakes()} / 3",
                 fg="red")
@@ -300,27 +334,38 @@ class SpotDifferenceGUI:
                 messagebox.showwarning(
                     "Too many mistakes",
                     f"You made 3 mistakes.\n"
-                    f"You found {self.state.found_count} out of 5\nLoad a new image to try again")
+                    f"You found {self.state.found_count} out of 5\n"
+                    f"Load a new image to try again")
                 self.modified_canvas.unbind("<Button-1>")
-             
+
         elif result == 'already_found':
             self.status_label.config(
                 text="Already found that one!",
                 fg="orange")
-         
+
         elif result == 'locked':
             self.status_label.config(
                 text="No more guesses.\nLoad a new image to play again.",
                 fg="darkred")
-    
-    def _fit_to_canvas(self, image):
+
+    def _fit_to_canvas(self, image: np.ndarray) -> tuple:
+        """Resize an image to fit within the canvas while preserving aspect ratio.
+
+        Args:
+            image: A numpy array (BGR) to resize.
+
+        Returns:
+            A tuple of (resized_image, new_width, new_height).
+        """
         h, w = image.shape[:2]
         scale = min(self.CANVAS_WIDTH / w, self.CANVAS_HEIGHT / h)
         new_w = int(w * scale)
         new_h = int(h * scale)
         return cv2.resize(image, (new_w, new_h)), new_w, new_h
 
+
 if __name__ == "__main__":
     root = tk.Tk()
     app = SpotDifferenceGUI(root)
     root.mainloop()
+    

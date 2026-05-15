@@ -124,7 +124,7 @@ class EdgeWarp(ImageAlteration):
             [0, 1, random.randint(-shift, shift)]
         ])
 
-        warped = cv2.warpAffine(region, M, region.shape[1], region.shape[0]))
+        warped = cv2.warpAffine(region, M, (region.shape[1], region.shape[0]))
 
         image[self.y: self.y + self.h, self.x: self.x + self.w] = warped
         return image

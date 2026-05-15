@@ -115,7 +115,7 @@ class AddShape(ImageAlteration):
 
 class EdgeWarp(ImageAlteration):
     def apply(self, image):
-        region = image[self.y= self.y + self.h, self.x: self.x + self.w].copy()
+        region = image[self.y: self.y + self.h, self.x: self.x + self.w].copy()
 
         shift = 5
 

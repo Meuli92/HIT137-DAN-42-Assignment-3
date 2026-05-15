@@ -113,7 +113,22 @@ class AddShape(ImageAlteration):
 
         return image
 
+class EdgeWarp(ImageAlteration):
+    def apply(self, image):
+        region = image[self.y= self.y + self.h, self.x: self.x + self.w].copy()
 
+        shift = 5
+
+        M = np.float32([
+            [1, 0, random.randint(-shift, shift)],
+            [0, 1, random.randint(-shift, shift)]
+        ])
+
+        warped = cv2.warpAffine(region, M, region.shape[1], region.shape[0]))
+
+        image[self.y: self.y + self.h, self.x: self.x + self.w] = warped
+        return image
+        
 class ImageProcessor:
     """Loads an image and generates a modified version with random differences."""
 
@@ -202,7 +217,8 @@ class ImageProcessor:
             if not self._is_overlapping(new_rect):
                 alteration_class = random.choice([ColourShift,
                                                   BrightnessChange,
-                                                  AddShape])
+                                                  AddShape,
+                                                  EdgeWarp])
                 alteration = alteration_class(x, y, w, h)
                 self.modified = alteration.apply(self.modified)
                 self.differences.append((x, y, w, h, alteration_class.__name__))

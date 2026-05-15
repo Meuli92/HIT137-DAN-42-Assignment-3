@@ -49,7 +49,7 @@ class ColourShift(ImageAlteration):
         """
         region = image[self.y:self.y + self.h, self.x:self.x + self.w].astype(np.int16)
 
-        shift = np.random.randint(-25, 25, region.shape)
+        shift = np.random.randint(-45, 45, region.shape)
         region = np.clip(region + shift, 0, 255).astype(np.uint8)
 
         image[self.y:self.y + self.h, self.x:self.x + self.w] = region
@@ -70,7 +70,7 @@ class BrightnessChange(ImageAlteration):
         """
         region = image[self.y:self.y + self.h, self.x:self.x + self.w].astype(np.int16)
 
-        value = random.randint(-40, 40)
+        value = random.randint(-70, 70)
         region = np.clip(region + value, 0, 255).astype(np.uint8)
 
         image[self.y:self.y + self.h, self.x:self.x + self.w] = region
@@ -105,7 +105,7 @@ class AddShape(ImageAlteration):
         overlay_roi = overlay[self.y:self.y + self.h,
                               self.x:self.x + self.w]
 
-        alpha = 0.45
+        alpha = 0.60
         blended = cv2.addWeighted(overlay_roi, alpha, roi, 1 - alpha, 0)
 
         image[self.y:self.y + self.h,
